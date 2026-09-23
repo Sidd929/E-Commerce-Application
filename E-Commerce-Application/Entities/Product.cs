@@ -22,5 +22,9 @@
 
 		// Navigation properties
 		public Category Category { get; set; } = null!;
+
+		public Inventory Inventory { get; set; } = null!;
+
+		public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
 	}
 }

@@ -14,5 +14,7 @@
 		
 		// Navigation Properties
 		public ICollection<Address> Addresses { get; set; } = new List<Address>();
+		public ICollection<Order> Orders { get; set; } = new List<Order>();
+		public Cart Cart { get; set; } = null!;
 	}
 }
