@@ -9,10 +9,12 @@ namespace E_Commerce_Application.Interfaces
 
 		Task<UserResponseDto?> GetUserByIdAsync(int id);
 
+		Task<IEnumerable<UserResponseDto>> GetAllUsersAsync();
+
 		Task<UserResponseDto?> UpdateUserAsync(int id, UpdateUserDto dto);
 
 		Task<bool> DeleteUserAsync(int id);
 
-		Task<UserResponseDto?> LoginAsync(LoginDto dto);
+		Task<LoginResponseDto?> LoginAsync(LoginDto dto);
 	}
 }

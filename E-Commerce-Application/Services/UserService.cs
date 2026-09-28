@@ -11,11 +11,13 @@ namespace E_Commerce_Application.Services
 	{
 		private readonly AppDbContext _context;
 		private readonly IPasswordHasher<User> _passwordHasher;
+		private readonly IJwtInterface _jwtService;
 
-		public UserService(AppDbContext context, IPasswordHasher<User> passwordHasher)
+		public UserService(AppDbContext context, IPasswordHasher<User> passwordHasher, IJwtInterface jwtService)
 		{
 			_context = context;
 			_passwordHasher = passwordHasher;
+			_jwtService = jwtService;
 		}
 
 		public async Task<UserResponseDto> CreateUserAsync(RegisterUserDto dto)
@@ -97,9 +99,39 @@ namespace E_Commerce_Application.Services
 			return responseUser;
 		}
 
-		public Task<UserResponseDto?> LoginAsync(LoginDto dto)
+		public async Task<LoginResponseDto?> LoginAsync(LoginDto dto)
 		{
-			throw new NotImplementedException();
+			var email = dto.Email.Trim().ToLowerInvariant();
+			var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+			if(user == null)
+			{
+				return null;
+			}
+
+			var passworResult = _passwordHasher.VerifyHashedPassword(user,user.PasswordHash, dto.Password);
+
+			if (passworResult == PasswordVerificationResult.Failed) { 
+				return null;
+			}
+
+			var token = _jwtService.GenerateToken(user.Id, user.Email, user.Role);
+
+			return new LoginResponseDto
+			{
+				Token = token,
+				User = new UserResponseDto
+				{
+					Id = user.Id,
+					FirstName = user.FirstName,
+					LastName= user.LastName,
+					Email = user.Email,
+					PhoneNumber = user.PhoneNumber,
+					Role = user.Role,
+					CreatedAt = user.CreatedAt,
+					IsActive = user.IsActive
+				}
+			};
 		}
 
 		public async Task<UserResponseDto?> UpdateUserAsync(int id, UpdateUserDto dto)
@@ -128,5 +160,22 @@ namespace E_Commerce_Application.Services
 
 			return responseUser;
 		}
+
+		public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync()
+		{
+			return await _context.Users
+			.Select(user => new UserResponseDto
+				{
+				Id = user.Id,
+				FirstName = user.FirstName,
+				LastName = user.LastName,
+				Email = user.Email,
+				PhoneNumber = user.PhoneNumber,
+				Role = user.Role,
+				CreatedAt = user.CreatedAt,
+				IsActive = user.IsActive
+				})
+			.ToListAsync();
+			}
 	}
 }
